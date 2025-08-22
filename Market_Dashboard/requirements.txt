@@ -1,5 +1,5 @@
 # Web Framework
-streamlit
+streamlit==1.32.2
 plotly
 
 # Data Handling
@@ -29,8 +29,6 @@ matplotlib
 seaborn
 # Authentication
 streamlit-authenticator
-# Caching
-streamlit==1.32.2
 # Deployment
 streamlit-cloud
 # Miscellaneous
