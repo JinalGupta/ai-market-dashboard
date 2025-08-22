@@ -12,11 +12,6 @@ yfinance
 beautifulsoup4
 requests
 
-# AI/ML
-transformers==4.37.2
-torch==2.0.1
-prophet==1.1.5
-
 # Database
 pymongo
 
@@ -24,16 +19,16 @@ pymongo
 python-dateutil
 pytz
 nltk
+
 # Visualization
-matplotlib  
+matplotlib
 seaborn
+
 # Authentication
 streamlit-authenticator
-# Deployment
-streamlit-cloud
+
 # Miscellaneous
 streamlit-extras
+
 # Logging
 loguru
-
-cmdstanpy==1.2.4
