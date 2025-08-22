@@ -13,9 +13,9 @@ beautifulsoup4
 requests
 
 # AI/ML
-transformers
-torch
-prophet
+transformers==4.37.2
+torch==2.0.1
+prophet==1.1.5
 
 # Database
 pymongo
@@ -35,3 +35,5 @@ streamlit-cloud
 streamlit-extras
 # Logging
 loguru
+
+cmdstanpy==1.2.4
