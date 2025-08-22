@@ -1,0 +1,39 @@
+# Web Framework
+streamlit
+plotly
+
+# Data Handling
+pandas
+numpy
+
+# Data Sources
+pytrends
+yfinance
+beautifulsoup4
+requests
+
+# AI/ML
+transformers
+torch
+prophet
+
+# Database
+pymongo
+
+# Utilities
+python-dateutil
+pytz
+nltk
+# Visualization
+matplotlib  
+seaborn
+# Authentication
+streamlit-authenticator
+# Caching
+streamlit-caching
+# Deployment
+streamlit-cloud
+# Miscellaneous
+streamlit-extras
+# Logging
+loguru
