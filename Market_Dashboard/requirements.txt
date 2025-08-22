@@ -30,7 +30,7 @@ seaborn
 # Authentication
 streamlit-authenticator
 # Caching
-streamlit-caching
+streamlit==1.32.2
 # Deployment
 streamlit-cloud
 # Miscellaneous
