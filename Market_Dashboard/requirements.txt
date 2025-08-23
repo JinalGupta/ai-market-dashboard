@@ -32,3 +32,6 @@ streamlit-extras
 
 # Logging
 loguru
+
+transformers
+torch
