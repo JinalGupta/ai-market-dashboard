@@ -37,14 +37,25 @@ if trends is not None and not trends.empty:
 
 # --- Stock Data ---
 # Stock Data
+# Stock Data
 st.subheader("Stock Data (Yahoo Finance)")
 stock = get_stock_data("AMZN")
-if stock.index.name != "Date":
-    stock = stock.reset_index()
-    stock.rename(columns={stock.columns[0]: "Date"}, inplace=True)  # first column is the datetime
 
+# Make sure datetime is a proper column
+if isinstance(stock.index, pd.DatetimeIndex):
+    stock = stock.reset_index()  # move index to a column
+    stock.rename(columns={stock.columns[0]: "Date"}, inplace=True)
+elif "Date" not in stock.columns:
+    # fallback: if neither index nor Date column exists, raise an informative error
+    raise ValueError(f"Stock DataFrame does not contain a datetime column. Columns: {stock.columns.tolist()}")
+
+# Check column names
+st.write("Columns in stock data:", stock.columns.tolist())
+
+# Plot
 fig_stock = px.line(stock, x="Date", y="Close", title="Amazon Stock Price")
 st.plotly_chart(fig_stock)
+
 
 # --- E-commerce Pricing ---
 st.subheader("E-commerce Prices")
