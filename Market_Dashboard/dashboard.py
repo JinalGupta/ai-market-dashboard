@@ -10,6 +10,8 @@ from config import DEFAULT_PRODUCT, FORECAST_PERIODS
 from utils.preprocessing import clean_timeseries
 from utils.visualization import line_chart, scatter_chart
 
+st.set_page_config(page_title="AI Market Intelligence", layout="wide")
+
 st.title("📊 AI Market Intelligence Dashboard")
 
 # Use default product from config
@@ -21,9 +23,6 @@ trends = clean_timeseries(trends, "date", product)
 
 # Show chart
 st.plotly_chart(line_chart(trends, "date", product, f"Google Trends for {product}"))
-
-
-st.set_page_config(page_title="AI Market Intelligence", layout="wide")
 
 st.title("📊 AI-Powered Real-Time Market Intelligence Dashboard")
 
