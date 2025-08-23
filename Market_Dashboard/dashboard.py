@@ -20,56 +20,70 @@ product = normalize_text(product_input)  # normalize before using
 
 # --- Google Trends ---
 st.subheader("Google Trends")
-trends = get_trends(product_input)  # fetch trends using original input
-trends = clean_timeseries(trends, "date", product)  # clean using normalized column
-if trends is not None:
-    fig_trends = px.line(trends, x="date", y=product, title=f"Search Trends for {product_input}")
-    st.plotly_chart(fig_trends)
+trends = get_trends(product_input)
+if trends is not None and not trends.empty:
+    try:
+        trends = clean_timeseries(trends, "date", product)
+        fig_trends = px.line(trends, x="date", y=product, title=f"Search Trends for {product_input}")
+        st.plotly_chart(fig_trends)
+    except KeyError:
+        st.write("No trend data available for this product column.")
 else:
     st.write("No trend data available for this product.")
 
 # --- Forecasting ---
 st.subheader("Forecasted Trends")
 if trends is not None and not trends.empty:
-    forecast_df = trends.rename(columns={"date": "ds", product: "y"})
-    forecast = forecast_trends(forecast_df)
-    fig_forecast = px.line(forecast, x="ds", y="yhat", title=f"Forecast for {product_input}")
-    st.plotly_chart(fig_forecast)
+    try:
+        forecast_df = trends.rename(columns={"date": "ds", product: "y"})
+        forecast = forecast_trends(forecast_df)
+        fig_forecast = px.line(forecast, x="ds", y="yhat", title=f"Forecast for {product_input}")
+        st.plotly_chart(fig_forecast)
+    except Exception:
+        st.write("Forecasting failed due to insufficient trend data.")
 
 # --- Stock Data ---
-# Stock Data
-# Stock Data
 st.subheader("Stock Data (Yahoo Finance)")
 stock = get_stock_data("AMZN")
 
-# Make sure datetime is a proper column
-if isinstance(stock.index, pd.DatetimeIndex):
-    stock = stock.reset_index()  # move index to a column
-    stock.rename(columns={stock.columns[0]: "Date"}, inplace=True)
-elif "Date" not in stock.columns:
-    # fallback: if neither index nor Date column exists, raise an informative error
-    raise ValueError(f"Stock DataFrame does not contain a datetime column. Columns: {stock.columns.tolist()}")
+# Attempt to find a datetime column
+datetime_col = None
+for col in stock.columns:
+    if pd.api.types.is_datetime64_any_dtype(stock[col]):
+        datetime_col = col
+        break
 
-# Check column names
-st.write("Columns in stock data:", stock.columns.tolist())
+# If no datetime column, check if index is DatetimeIndex
+if datetime_col is None and isinstance(stock.index, pd.DatetimeIndex):
+    stock = stock.reset_index()
+    datetime_col = stock.columns[0]
 
-# Plot
-fig_stock = px.line(stock, x="Date", y="Close", title="Amazon Stock Price")
-st.plotly_chart(fig_stock)
+# If still no datetime column, display a message and skip plotting
+if datetime_col is None:
+    st.write("⚠️ Stock data does not contain a datetime column. Cannot plot stock chart.")
+    st.write("Available columns:", stock.columns.tolist())
+else:
+    fig_stock = px.line(stock, x=datetime_col, y="Close", title="Amazon Stock Price")
+    st.plotly_chart(fig_stock)
 
 
 # --- E-commerce Pricing ---
 st.subheader("E-commerce Prices")
 prices = get_product_price(product_input)
 if prices is not None and not prices.empty:
-    fig_price = px.line(prices, x="timestamp", y="price", title=f"Price Tracking: {product_input}")
-    st.plotly_chart(fig_price)
+    if "timestamp" in prices.columns and "price" in prices.columns:
+        fig_price = px.line(prices, x="timestamp", y="price", title=f"Price Tracking: {product_input}")
+        st.plotly_chart(fig_price)
 
-    # --- Anomaly Detection ---
-    st.subheader("Anomaly Detection on Prices")
-    prices_anomalies = detect_anomalies(prices.rename(columns={"price": "value"}))
-    fig_anomaly = px.scatter(prices_anomalies, x="timestamp", y="value", color="anomaly", title="Price Anomalies")
-    st.plotly_chart(fig_anomaly)
+        # --- Anomaly Detection ---
+        st.subheader("Anomaly Detection on Prices")
+        prices_anomalies = detect_anomalies(prices.rename(columns={"price": "value"}))
+        fig_anomaly = px.scatter(prices_anomalies, x="timestamp", y="value", color="anomaly", title="Price Anomalies")
+        st.plotly_chart(fig_anomaly)
+    else:
+        st.write("E-commerce data missing required columns: 'timestamp' or 'price'.")
+else:
+    st.write("No e-commerce pricing data available.")
 
 # --- Sentiment Analysis ---
 st.subheader("Sentiment Analysis")
@@ -78,13 +92,16 @@ sample_reviews = [
     f"The {product_input} is overpriced.",
     f"Best {product_input} ever released!"
 ]
-sentiments = analyze_sentiment(sample_reviews)
-st.write(sentiments)
+try:
+    sentiments = analyze_sentiment(sample_reviews)
+    st.write(sentiments)
+except Exception:
+    st.write("Sentiment analysis failed.")
 
 # --- Insights ---
 st.subheader("📌 AI Insights")
-if trends is not None and not trends.empty:
+if trends is not None and not trends.empty and product in trends.columns:
     pct_change = trends[product].pct_change().iloc[-1] * 100
     st.write(f"🔹 {product_input} is experiencing a {pct_change:.2f}% change in search interest.")
-st.write(f"🔹 Sentiment Analysis: {sentiments}")
+st.write(f"🔹 Sentiment Analysis: {sentiments if 'sentiments' in locals() else 'N/A'}")
 st.write("🔹 Stock prices and e-commerce trends are visualized above.")
