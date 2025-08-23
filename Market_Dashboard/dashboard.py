@@ -36,9 +36,14 @@ if trends is not None and not trends.empty:
     st.plotly_chart(fig_forecast)
 
 # --- Stock Data ---
+# Stock Data
 st.subheader("Stock Data (Yahoo Finance)")
 stock = get_stock_data("AMZN")
-fig_stock = px.line(stock, x="Datetime", y="Close", title="Amazon Stock Price")
+if stock.index.name != "Date":
+    stock = stock.reset_index()
+    stock.rename(columns={stock.columns[0]: "Date"}, inplace=True)  # first column is the datetime
+
+fig_stock = px.line(stock, x="Date", y="Close", title="Amazon Stock Price")
 st.plotly_chart(fig_stock)
 
 # --- E-commerce Pricing ---
@@ -70,3 +75,4 @@ if trends is not None and not trends.empty:
     pct_change = trends[product].pct_change().iloc[-1] * 100
     st.write(f"🔹 {product_input} is experiencing a {pct_change:.2f}% change in search interest.")
 st.write(f"🔹 Sentiment Analysis: {sentiments}")
+st.write("🔹 Stock prices and e-commerce trends are visualized above.")
