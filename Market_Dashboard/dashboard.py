@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 from data_sources.google_trends import get_trends
 from data_sources.yahoo_finance import get_stock_data
