@@ -3,8 +3,8 @@ import plotly.express as px
 from data_sources.google_trends import get_trends
 from data_sources.yahoo_finance import get_stock_data
 from data_sources.ecommerce_scraper import get_product_price
-from models.sentiment_model import analyze_sentiment
-from models.forecasting_model import forecast_trends
+from models.sentiment_models import analyze_sentiment
+from models.forecasting_models import forecast_trends
 from models.anomaly_detector import detect_anomalies
 from config import DEFAULT_PRODUCT, FORECAST_PERIODS
 from utils.preprocessing import clean_timeseries
