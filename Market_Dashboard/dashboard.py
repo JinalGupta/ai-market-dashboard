@@ -7,69 +7,66 @@ from models.sentiment_models import analyze_sentiment
 from models.forecasting_models import forecast_trends
 from models.anomaly_detector import detect_anomalies
 from config import DEFAULT_PRODUCT, FORECAST_PERIODS
-from utils.preprocessing import clean_timeseries
+from utils.preprocessing import clean_timeseries, normalize_text
 from utils.visualization import line_chart, scatter_chart
 
 st.set_page_config(page_title="AI Market Intelligence", layout="wide")
-
-st.title("📊 AI Market Intelligence Dashboard")
-
-# Use default product from config
-product = st.text_input("Enter Product", DEFAULT_PRODUCT)
-
-# Get trends
-trends = get_trends(product)
-trends = clean_timeseries(trends, "date", product)
-
-# Show chart
-st.plotly_chart(line_chart(trends, "date", product, f"Google Trends for {product}"))
-
 st.title("📊 AI-Powered Real-Time Market Intelligence Dashboard")
 
-# Input
-product = st.text_input("Enter Product/Keyword", "iPhone")
+# --- Input Product ---
+product_input = st.text_input("Enter Product/Keyword", DEFAULT_PRODUCT)
+product = normalize_text(product_input)  # normalize before using
 
-# Google Trends
+# --- Google Trends ---
 st.subheader("Google Trends")
-trends = get_trends(product)
-fig_trends = px.line(trends, x="date", y=product, title=f"Search Trends for {product}")
-st.plotly_chart(fig_trends)
+trends = get_trends(product_input)  # fetch trends using original input
+trends = clean_timeseries(trends, "date", product)  # clean using normalized column
+if trends is not None:
+    fig_trends = px.line(trends, x="date", y=product, title=f"Search Trends for {product_input}")
+    st.plotly_chart(fig_trends)
+else:
+    st.write("No trend data available for this product.")
 
-# Forecasting
+# --- Forecasting ---
 st.subheader("Forecasted Trends")
-forecast = forecast_trends(trends.rename(columns={"date": "ds", product: "y"}))
-fig_forecast = px.line(forecast, x="ds", y="yhat", title=f"Forecast for {product}")
-st.plotly_chart(fig_forecast)
+if trends is not None and not trends.empty:
+    forecast_df = trends.rename(columns={"date": "ds", product: "y"})
+    forecast = forecast_trends(forecast_df)
+    fig_forecast = px.line(forecast, x="ds", y="yhat", title=f"Forecast for {product_input}")
+    st.plotly_chart(fig_forecast)
 
-# Stock Data
+# --- Stock Data ---
 st.subheader("Stock Data (Yahoo Finance)")
 stock = get_stock_data("AMZN")
 fig_stock = px.line(stock, x="Datetime", y="Close", title="Amazon Stock Price")
 st.plotly_chart(fig_stock)
 
-# E-commerce Pricing
+# --- E-commerce Pricing ---
 st.subheader("E-commerce Prices")
-prices = get_product_price(product)
-fig_price = px.line(prices, x="timestamp", y="price", title=f"Price Tracking: {product}")
-st.plotly_chart(fig_price)
+prices = get_product_price(product_input)
+if prices is not None and not prices.empty:
+    fig_price = px.line(prices, x="timestamp", y="price", title=f"Price Tracking: {product_input}")
+    st.plotly_chart(fig_price)
 
-# Sentiment Analysis
+    # --- Anomaly Detection ---
+    st.subheader("Anomaly Detection on Prices")
+    prices_anomalies = detect_anomalies(prices.rename(columns={"price": "value"}))
+    fig_anomaly = px.scatter(prices_anomalies, x="timestamp", y="value", color="anomaly", title="Price Anomalies")
+    st.plotly_chart(fig_anomaly)
+
+# --- Sentiment Analysis ---
 st.subheader("Sentiment Analysis")
 sample_reviews = [
-    f"I love my new {product}!",
-    f"The {product} is overpriced.",
-    f"Best {product} ever released!"
+    f"I love my new {product_input}!",
+    f"The {product_input} is overpriced.",
+    f"Best {product_input} ever released!"
 ]
 sentiments = analyze_sentiment(sample_reviews)
 st.write(sentiments)
 
-# Anomaly Detection
-st.subheader("Anomaly Detection on Prices")
-prices_anomalies = detect_anomalies(prices.rename(columns={"price": "value"}))
-fig_anomaly = px.scatter(prices_anomalies, x="timestamp", y="value", color="anomaly", title="Price Anomalies")
-st.plotly_chart(fig_anomaly)
-
-# Example Insights
+# --- Insights ---
 st.subheader("📌 AI Insights")
-st.write(f"🔹 {product} is experiencing a {trends[product].pct_change().iloc[-1]*100:.2f}% change in search interest.")
+if trends is not None and not trends.empty:
+    pct_change = trends[product].pct_change().iloc[-1] * 100
+    st.write(f"🔹 {product_input} is experiencing a {pct_change:.2f}% change in search interest.")
 st.write(f"🔹 Sentiment Analysis: {sentiments}")
