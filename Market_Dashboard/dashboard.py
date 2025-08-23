@@ -46,6 +46,10 @@ if trends is not None and not trends.empty:
 st.subheader("Stock Data (Yahoo Finance)")
 stock = get_stock_data("AMZN")
 
+st.write("Stock Data Preview:")
+st.write(stock.head())
+st.write("Columns:", stock.columns.tolist())
+
 # Attempt to find a datetime column
 datetime_col = None
 for col in stock.columns:
